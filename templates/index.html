@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Analyzer</title>
+    <style>
+        img {
+            max-width: 400px;
+            max-height: 400px;
+            margin-bottom: 10px;
+        }
+        #resultBox {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Analyzer</h1>
+    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+        <button type="button" id="analyzeButton">Analyze Image</button>
+        <button type="button" id="customVisionButton">Custom Vision</button>
+    </form>
+    <div>
+        <img id="previewImage" src="#" alt="Uploaded Image" style="display: none;">
+    </div>
+    <div id="resultBox">
+        <label for="result">Image Analysis Result:</label><br>
+        <textarea id="result" rows="4" cols="50" readonly></textarea>
+    </div>
+    <script>
+        function previewImage(event) {
+            var file = event.target.files[0];
+            var reader = new FileReader();
+            reader.onload = function() {
+                var preview = document.getElementById('previewImage');
+                preview.src = reader.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById("analyzeButton").addEventListener("click", function() {
+            var fileInput = document.getElementById('fileInput');
+            var imageFile = fileInput.files[0];
+            
+            var formData = new FormData();
+            formData.append('file', imageFile);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').value = data.description;
+                document.getElementById('resultBox').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById("customVisionButton").addEventListener("click", function() {
+            var fileInput = document.getElementById('fileInput');
+            var imageFile = fileInput.files[0];
+            
+            var formData = new FormData();
+            formData.append('file', imageFile);
+            
+            fetch('/customvision', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').value = data.prediction;
+                document.getElementById('resultBox').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
